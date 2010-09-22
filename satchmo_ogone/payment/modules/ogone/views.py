@@ -97,9 +97,10 @@ def confirm_info(request):
                     recurring['trial2']['price'] = trial1.price
 
     order_form_data = get_ogone_request(order.id, 
-                                     order.balance, 
+                                     order.balance*100, 
                                      payment_module.CURRENCY_CODE.value,
-                                     accepturl=address)
+                                     accepturl=address, 
+                                     language=getattr(request, 'LANGUAGE_CODE', 'en_US'))
                                      
     return render_to_response('ogone/to_ogone_form.html', {
         'form': order_form_data['form'], 'action': order_form_data['action'], 
