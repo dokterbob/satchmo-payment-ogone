@@ -98,8 +98,8 @@ def confirm_info(request):
 
     order_form_data = get_ogone_request(order.id, 
                                      order.balance, 
-                                     payment_module.CURRENCY_CODE.value, 
-                                     language=settings.LANGUAGE)
+                                     payment_module.CURRENCY_CODE.value,
+                                     accepturl=address)
                                      
     return render_to_response('ogone/to_ogone_form.html', {
         'form': order_form_data['form'], 'action': order_form_data['action'], 
