@@ -1,9 +1,9 @@
 import logging
 
-from hashlib import sha1
+from hashlib import sha1, sha512
 
-def create_hash(params, secret):
-    """ Ogone's SHA1 hashing algorithm.
+def create_hash(params, secret, hashfunc=sha512):
+    """ Ogone's hashing algorithm - using the safer SHA512 digest by default.
     
     This is the hash from the documentation example:
     
@@ -13,7 +13,7 @@ def create_hash(params, secret):
     ...         'orderID': '1234',
     ...         'PSPID': 'MyPSPID'}
     >>> secret = 'Mysecretsig1875!?'
-    >>> create_hash(pars, secret)
+    >>> create_hash(pars, secret, hashfunc=sha1)
     'EB52902BCC4B50DC1250E5A7C1068ECF97751256'
     
     """
@@ -37,7 +37,7 @@ def create_hash(params, secret):
     signstring = ''.join(signstring)
     
     # Hash the string
-    signhash = sha1(signstring).hexdigest()
+    signhash = hashfunc(signstring).hexdigest()
     
     # Uppercase the hash
     signhashupper = signhash.upper()
