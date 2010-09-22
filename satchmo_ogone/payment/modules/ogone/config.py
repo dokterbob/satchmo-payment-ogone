@@ -1,7 +1,7 @@
 from livesettings import *
 from django.utils.translation import ugettext_lazy as _
 
-PAYMENT_GROUP = ConfigurationGroup('PAYMENT_PAYPAL',
+PAYMENT_GROUP = ConfigurationGroup('PAYMENT_OGONE',
     _('Ogone Payment Module Settings'),
     ordering = 101)
 
@@ -17,24 +17,24 @@ StringValue(PAYMENT_GROUP,
     'POST_URL',
     description=_('Post URL'),
     help_text=_('The Ogone URL for real transaction posting.'),
-    default="https://www.paypal.com/cgi-bin/webscr"),
+    default="https://www.ogone.com/cgi-bin/webscr"),
 
 StringValue(PAYMENT_GROUP,
     'POST_TEST_URL',
     description=_('Post URL'),
     help_text=_('The Ogone URL for test transaction posting.'),
-    default="https://www.sandbox.paypal.com/cgi-bin/webscr"),
+    default="https://www.sandbox.ogone.com/cgi-bin/webscr"),
 
 StringValue(PAYMENT_GROUP,
     'BUSINESS',
     description=_('Ogone account email'),
-    help_text=_('The email address for your paypal account'),
+    help_text=_('The email address for your ogone account'),
     default=""),
 
 StringValue(PAYMENT_GROUP,
     'BUSINESS_TEST',
     description=_('Ogone test account email'),
-    help_text=_('The email address for testing your paypal account'),
+    help_text=_('The email address for testing your ogone account'),
     default=""),
 
 StringValue(PAYMENT_GROUP,
@@ -53,24 +53,24 @@ ModuleValue(PAYMENT_GROUP,
     'MODULE',
     description=_('Implementation module'),
     hidden=True,
-    default = 'payment.modules.paypal'),
+    default = 'payment.modules.ogone'),
 
 StringValue(PAYMENT_GROUP,
     'KEY',
     description=_("Module key"),
     hidden=True,
-    default = 'PAYPAL'),
+    default = 'OGONE'),
 
 StringValue(PAYMENT_GROUP,
     'LABEL',
     description=_('English name for this group on the checkout screens'),
-    default = 'PayPal',
+    default = 'Ogone',
     help_text = _('This will be passed to the translation utility')),
 
 StringValue(PAYMENT_GROUP,
     'URL_BASE',
     description=_('The url base used for constructing urlpatterns which will use this module'),
-    default = '^paypal/'),
+    default = '^ogone/'),
 
 BooleanValue(PAYMENT_GROUP,
     'EXTRA_LOGGING',
@@ -80,5 +80,5 @@ BooleanValue(PAYMENT_GROUP,
 )
 
 PAYMENT_GROUP['TEMPLATE_OVERRIDES'] = {
-    'shop/checkout/confirm.html' : 'shop/checkout/paypal/confirm.html',
+    'shop/checkout/confirm.html' : 'shop/checkout/ogone/confirm.html',
 }
