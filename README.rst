@@ -1,5 +1,5 @@
-=================
-django-simplesite
-=================
+=====================
+satchmo-payment-ogone
+=====================
 
-A simple pseudo-static site app with menu, submenu and pages.
+Satchmo payment module for Ogone.
