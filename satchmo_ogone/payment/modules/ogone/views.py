@@ -20,6 +20,7 @@ import logging
 import urllib2
 from django.views.decorators.csrf import csrf_exempt
 
+from utils import get_ogone_request
 
 log = logging.getLogger()
 
@@ -95,20 +96,30 @@ def confirm_info(request):
                     recurring['trial2']['expire_unit'] = trial1.subscription.expire_unit[0]
                     recurring['trial2']['price'] = trial1.price
 
-    ctx = RequestContext(request, {'order': order,
-     'post_url': url,
-     'default_view_tax': default_view_tax,
-     'business': account,
-     'currency_code': payment_module.CURRENCY_CODE.value,
-     'return_address': address,
-     'invoice': order.id,
-     'subscription': recurring,
-     'PAYMENT_LIVE' : gateway_live(payment_module)
-    })
+    order_form_data = get_ogone_request(order.id, 
+                                     order.balance, 
+                                     payment_module.CURRENCY_CODE.value, 
+                                     language=settings.LANGUAGE)
+                                     
+    return render_to_response('ogone/to_ogone_form.html', {
+        'form': order_form_data['form'], 'action': order_form_data['action'], 
+        'header': '', 'title': ''})
 
-    return render_to_response(template, context_instance=ctx)
 confirm_info = never_cache(confirm_info)
-
+    
+#     ctx = RequestContext(request, {'order': order,
+#      'post_url': url,
+#      'default_view_tax': default_view_tax,
+#      'business': account,
+#      'currency_code': payment_module.CURRENCY_CODE.value,
+#      'return_address': address,
+#      'invoice': order.id,
+#      'subscription': recurring,
+#      'PAYMENT_LIVE' : gateway_live(payment_module)
+#     })
+# 
+#     return render_to_response(template, context_instance=ctx)
+#
 # @csrf_exempt
 # def ipn(request):
 #     """Ogone IPN (Instant Payment Notification)
