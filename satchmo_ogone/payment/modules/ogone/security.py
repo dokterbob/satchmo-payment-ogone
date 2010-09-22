@@ -33,14 +33,14 @@ def create_hash(params, secret):
             signstring += '%s=%s%s' % (key.upper(), params[key], secret)
     
     logging.debug('String to sign: %s', signstring)
-        
+    # Join the string
+    signstring = ''.join(signstring)
+    
     # Hash the string
     signhash = sha1(signstring).hexdigest()
     
     # Uppercase the hash
     signhashupper = signhash.upper()
-
-    logging.debug('Hash result: %s', signstring)
     
     return signhashupper
 
