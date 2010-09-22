@@ -53,7 +53,7 @@ ModuleValue(PAYMENT_GROUP,
     'MODULE',
     description=_('Implementation module'),
     hidden=True,
-    default = 'payment.modules.ogone'),
+    default = 'satchmo_ogone.payment.modules.ogone'),
 
 StringValue(PAYMENT_GROUP,
     'KEY',
