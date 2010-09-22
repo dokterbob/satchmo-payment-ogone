@@ -14,14 +14,14 @@ except:
     REQUIREMENTS = None
 
 setup(
-    name='django-simplesite',
+    name='satchmo-payment-ogone',
     version='0.1',
-    description='A simple pseudo-static site app with menu, submenu and pages.',
+    description='Satchmo payment module for Ogone.',
     long_description=README,
     install_requires=REQUIREMENTS,
     author='Mathijs de Bruin',
     author_email='mathijs@mathijsfietst.nl',
-    url='http://github.com/dokterbob/django-simplesite',
+    url='http://github.com/dokterbob/satchmo-payment-ogone',
     packages = find_packages(),
     classifiers=[
         'Development Status :: 4 - Beta',
