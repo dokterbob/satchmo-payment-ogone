@@ -11,7 +11,7 @@ StringValue(PAYMENT_GROUP,
     'CURRENCY_CODE',
     description=_('Currency Code'),
     help_text=_('Currency code for Ogone transactions.'),
-    default = 'USD'),
+    default = 'EUR'),
 
 StringValue(PAYMENT_GROUP,
     'POST_URL',
