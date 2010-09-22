@@ -9,16 +9,23 @@ def get_action():
         return settings.TEST_URL
 
 
-
-def get_ogone_request(order_id, amount, currency, language,
+def get_ogone_request(order, currency, language,
                       accepturl='NONE', cancelurl='NONE', homeurl='NONE',
                       catalogurl='NONE', declineurl='NONE', 
                       exceptionurl='NONE'):    
 
     init_data = {
         'PSPID': settings.PSPID,
-        'orderID': order_id,
-        'amount': amount,
+        'orderID': order.id,
+        'amount': u'%d' % (order.balance*100), 
+        'cn': order.bill_addressee,
+        'email': order.contact.email,
+        'owneraddress': order.bill_street1,
+        'ownerstate': order.bill_street2,
+        'ownertown': order.bill_city,
+        'ownerzip': order.bill_postal_code,
+        'ownercty': order.bill_country_name,
+        'com': unicode(order),
         'currency': currency,
         'language': language,
         # URLs need an appended slash!
