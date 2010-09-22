@@ -2,7 +2,7 @@ from livesettings import *
 from django.utils.translation import ugettext_lazy as _
 
 PAYMENT_GROUP = ConfigurationGroup('PAYMENT_PAYPAL',
-    _('Paypal Payment Module Settings'),
+    _('Ogone Payment Module Settings'),
     ordering = 101)
 
 config_register_list(
@@ -10,37 +10,37 @@ config_register_list(
 StringValue(PAYMENT_GROUP,
     'CURRENCY_CODE',
     description=_('Currency Code'),
-    help_text=_('Currency code for Paypal transactions.'),
+    help_text=_('Currency code for Ogone transactions.'),
     default = 'USD'),
 
 StringValue(PAYMENT_GROUP,
     'POST_URL',
     description=_('Post URL'),
-    help_text=_('The Paypal URL for real transaction posting.'),
+    help_text=_('The Ogone URL for real transaction posting.'),
     default="https://www.paypal.com/cgi-bin/webscr"),
 
 StringValue(PAYMENT_GROUP,
     'POST_TEST_URL',
     description=_('Post URL'),
-    help_text=_('The Paypal URL for test transaction posting.'),
+    help_text=_('The Ogone URL for test transaction posting.'),
     default="https://www.sandbox.paypal.com/cgi-bin/webscr"),
 
 StringValue(PAYMENT_GROUP,
     'BUSINESS',
-    description=_('Paypal account email'),
+    description=_('Ogone account email'),
     help_text=_('The email address for your paypal account'),
     default=""),
 
 StringValue(PAYMENT_GROUP,
     'BUSINESS_TEST',
-    description=_('Paypal test account email'),
+    description=_('Ogone test account email'),
     help_text=_('The email address for testing your paypal account'),
     default=""),
 
 StringValue(PAYMENT_GROUP,
     'RETURN_ADDRESS',
     description=_('Return URL'),
-    help_text=_('Where Paypal will return the customer after the purchase is complete.  This can be a named url and defaults to the standard checkout success.'),
+    help_text=_('Where Ogone will return the customer after the purchase is complete.  This can be a named url and defaults to the standard checkout success.'),
     default="satchmo_checkout-success"),
 
 BooleanValue(PAYMENT_GROUP,

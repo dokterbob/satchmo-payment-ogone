@@ -25,13 +25,13 @@ log = logging.getLogger()
 
 def pay_ship_info(request):
     return payship.base_pay_ship_info(request,
-        config_get_group('PAYMENT_PAYPAL'), payship.simple_pay_ship_process_form,
-        'shop/checkout/paypal/pay_ship.html')
+        config_get_group('PAYMENT_OGONE'), payship.simple_pay_ship_process_form,
+        'shop/checkout/ogone/pay_ship.html')
 pay_ship_info = never_cache(pay_ship_info)
 
 
 def confirm_info(request):
-    payment_module = config_get_group('PAYMENT_PAYPAL')
+    payment_module = config_get_group('PAYMENT_OGONE')
 
     try:
         order = Order.objects.from_request(request)
@@ -51,7 +51,7 @@ def confirm_info(request):
                                  {'message': _('Your order is no longer valid.')})
         return render_to_response('shop/404.html', context_instance=context)
 
-    template = lookup_template(payment_module, 'shop/checkout/paypal/confirm.html')
+    template = lookup_template(payment_module, 'shop/checkout/ogone/confirm.html')
     if payment_module.LIVE.value:
         log.debug("live order on %s", payment_module.KEY.value)
         url = payment_module.POST_URL.value
@@ -111,10 +111,10 @@ confirm_info = never_cache(confirm_info)
 
 @csrf_exempt
 def ipn(request):
-    """PayPal IPN (Instant Payment Notification)
+    """Ogone IPN (Instant Payment Notification)
     Cornfirms that payment has been completed and marks invoice as paid.
     Adapted from IPN cgi script provided at http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/456361"""
-    payment_module = config_get_group('PAYMENT_PAYPAL')
+    payment_module = config_get_group('PAYMENT_OGONE')
     if payment_module.LIVE.value:
         log.debug("Live IPN on %s", payment_module.KEY.value)
         url = payment_module.POST_URL.value
@@ -127,7 +127,7 @@ def ipn(request):
 
     try:
         data = request.POST
-        log.debug("PayPal IPN data: " + repr(data))
+        log.debug("Ogone IPN data: " + repr(data))
         if not confirm_ipn_data(data, PP_URL):
             return HttpResponse()
 
@@ -148,8 +148,8 @@ def ipn(request):
             # If the payment hasn't already been processed:
             order = Order.objects.get(pk=invoice)
 
-            order.add_status(status='New', notes=_("Paid through PayPal."))
-            processor = get_processor_by_key('PAYMENT_PAYPAL')
+            order.add_status(status='New', notes=_("Paid through Ogone."))
+            processor = get_processor_by_key('PAYMENT_OGONE')
             payment = processor.record_payment(order=order, amount=gross, transaction_id=txn_id)
 
             if 'memo' in data:
@@ -158,9 +158,9 @@ def ipn(request):
                 else:
                     notes = ""
 
-                order.notes = notes + _('---Comment via Paypal IPN---') + u'\n' + data['memo']
+                order.notes = notes + _('---Comment via Ogone IPN---') + u'\n' + data['memo']
                 order.save()
-                log.debug("Saved order notes from Paypal")
+                log.debug("Saved order notes from Ogone")
 
             # Run only if subscription products are installed
             if 'product.modules.subscription' in settings.INSTALLED_APPS:
@@ -192,9 +192,9 @@ def confirm_ipn_data(data, PP_URL):
 
     ret = fo.read()
     if ret == "VERIFIED":
-        log.info("PayPal IPN data verification was successful.")
+        log.info("Ogone IPN data verification was successful.")
     else:
-        log.info("PayPal IPN data verification failed.")
+        log.info("Ogone IPN data verification failed.")
         log.debug("HTTP code %s, response text: '%s'" % (fo.code, ret))
         return False
 
