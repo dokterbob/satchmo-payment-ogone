@@ -1,1 +1,2 @@
-surlex
+-e git://github.com/dokterbob/django-ogone.git#egg=django-ogone
+
