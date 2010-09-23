@@ -1,12 +1,8 @@
-from ogone.conf import settings
-from ogone.forms import DynOgoneForm
-from security import create_hash
+import logging
 
-def get_action():
-    if settings.PRODUCTION == True:
-        return settings.PROD.URL
-    else:
-        return settings.TEST_URL
+from django_ogone import forms as ogone_forms
+from django_ogone.ogone import Ogone
+from django_ogone import ogone_settings  
 
 
 def get_ogone_request(order, currency, language,
@@ -15,9 +11,11 @@ def get_ogone_request(order, currency, language,
                       exceptionurl='NONE'):    
 
     init_data = {
-        'PSPID': settings.PSPID,
+        'PSPID': ogone_settings.PSPID,
         'orderID': order.id,
         'amount': u'%d' % (order.balance*100), 
+        'language': language,
+        'currency': currency,
         'cn': order.bill_addressee,
         'email': order.contact.email,
         'owneraddress': order.bill_street1,
@@ -26,8 +24,6 @@ def get_ogone_request(order, currency, language,
         'ownerzip': order.bill_postal_code,
         'ownercty': order.bill_country_name,
         'com': unicode(order),
-        'currency': currency,
-        'language': language,
         # URLs need an appended slash!
         'accepturl': accepturl,
         'cancelurl': cancelurl,
@@ -37,10 +33,10 @@ def get_ogone_request(order, currency, language,
         'catalogurl': catalogurl,
     }
     
-    signature = create_hash(init_data, settings.SHA1_PRE_SECRET)
+    init_data['SHASign'] = Ogone.sign(init_data)
+
+    logging.debug('Sending the following data to Ogone: %s', init_data)
+    form = ogone_forms.OgoneForm(init_data)
     
-    init_data.update({'SHASign': signature})
-    
-    form = DynOgoneForm(initial_data=init_data, auto_id=False)
-    return {'action': get_action(), 'form': form}
+    return {'action': Ogone.get_action(), 'form': form}
     
