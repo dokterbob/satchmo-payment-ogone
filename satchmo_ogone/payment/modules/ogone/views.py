@@ -207,7 +207,9 @@ def order_status_update(request, order=None):
                 log.error('Unknown payment status returned for order %s (ID: %d). Status: %s (%d)',
                     ogone_order, ogone_order.pk, 
                     status_codes.STATUS_DESCRIPTIONS[status_num], status_num)
-
+    else:
+        log.debug('We have gotten an invalid order status update.')
+    
     # Return an empty HttpResponse
     return HttpResponse('')
 
