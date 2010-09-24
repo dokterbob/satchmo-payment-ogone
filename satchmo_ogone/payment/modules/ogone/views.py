@@ -94,6 +94,7 @@ def confirm_info(request):
     success_url = reverse_full_url('OGONE_satchmo_checkout-success')
     failure_url = reverse_full_url('OGONE_satchmo_checkout-failure')
     
+    # Get Ogone settings from Satchmo
     settings = get_ogone_settings()
     
     context = get_ogone_request(payment, 
@@ -127,7 +128,8 @@ def order_status_update(request, order=None):
 
     params = request.GET or request.POST
     if params.get('orderID', False):
-        ogone = Ogone(params)
+        # Get Ogone settings from Satchmo
+        ogone = Ogone(params, settings=get_ogone_settings())
     
         # Make sure we check the data, and raise an exception if its wrong
         ogone.is_valid()
