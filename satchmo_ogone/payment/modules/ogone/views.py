@@ -48,10 +48,10 @@ def get_ogone_settings():
         HASH_METHOD = payment_module.HASH_METHOD.value
         PRODUCTION = payment_module.LIVE.value
         PSPID = payment_module.PSPID.value
-        CURRENCY = payment_module.CURRENCY_CODE.value,
-        TEST_URL = payment_module.TEST_URL.value,
-        PROD_URL = payment_module.PROD_URL.value,
-
+        CURRENCY = payment_module.CURRENCY_CODE.value
+        TEST_URL = payment_module.TEST_URL.value
+        PROD_URL = payment_module.PROD_URL.value
+        
     return Settings
 
 @never_cache
