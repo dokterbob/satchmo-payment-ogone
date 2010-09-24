@@ -25,9 +25,11 @@ from django.views.decorators.csrf import csrf_exempt
 from satchmo_ogone.payment.modules.ogone.utils import get_ogone_request
 from django_ogone import status_codes
 
-log = logging.getLogger()
+log = logging.getLogger('satchmo_payment_ogone')
 
 from django.contrib.sites.models import Site
+
+from django_ogone.ogone import Ogone
 
 def reverse_full_url(view, *args, **kwargs):
     current_site = Site.objects.get_current()
@@ -87,7 +89,7 @@ def confirm_info(request):
     processor = processor_module.PaymentProcessor(payment_module)
     
     payment = processor.create_pending_payment(order=order)
-    logging.debug('Creating payment %s for order %s', payment, order)
+    log.debug('Creating payment %s for order %s', payment, order)
     
     success_url = reverse_full_url('OGONE_satchmo_checkout-success')
     failure_url = reverse_full_url('OGONE_satchmo_checkout-failure')
@@ -109,7 +111,6 @@ def confirm_info(request):
     return render_to_response(template, context, RequestContext(request))
 
 
-from django_ogone.ogone import Ogone
 
 @csrf_exempt
 def order_status_update(request, order=None):
@@ -122,7 +123,7 @@ def order_status_update(request, order=None):
     with an updated version ofo the payment status)
     '''
 
-    logging.debug('Attempting to update status information')
+    log.debug('Attempting to update status information')
 
     params = request.GET or request.POST
     if params.get('orderID', False):
@@ -130,7 +131,7 @@ def order_status_update(request, order=None):
     
         # Make sure we check the data, and raise an exception if its wrong
         ogone.is_valid()
-        logging.debug('We have found a valid status feedback message')
+        log.debug('We have found a valid status feedback message')
 
         # Fetch parsed params
         parsed_params = ogone.parse_params()   
@@ -147,7 +148,7 @@ def order_status_update(request, order=None):
         
         status_code = parsed_params['STATUS']
         status_num = int(status_code)
-        logging.debug('Recording status: %s (%s)', 
+        log.debug('Recording status: %s (%s)', 
                       status_codes.STATUS_DESCRIPTIONS[status_num],
                       status_code)
         
@@ -196,12 +197,12 @@ def order_status_update(request, order=None):
                     notes=_("Payment declined by Ogone."))
             
             elif status_num in (52, 92):
-                logging.warning('Payment of order %s (ID: %d) uncertain. Status: %s (%d)',
+                log.warning('Payment of order %s (ID: %d) uncertain. Status: %s (%d)',
                     ogone_order, ogone_order.pk, 
                     status_codes.STATUS_DESCRIPTIONS[status_num], status_num)
             
             else:
-                logging.error('Unknown payment status returned for order %s (ID: %d). Status: %s (%d)',
+                log.error('Unknown payment status returned for order %s (ID: %d). Status: %s (%d)',
                     ogone_order, ogone_order.pk, 
                     status_codes.STATUS_DESCRIPTIONS[status_num], status_num)
 
