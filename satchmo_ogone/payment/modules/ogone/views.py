@@ -24,6 +24,16 @@ from utils import get_ogone_request
 
 log = logging.getLogger()
 
+from django.contrib.sites.models import Site
+
+def reverse_full_url(view, *args, **kwargs):
+    current_site = Site.objects.get_current()
+    protocol = kwargs.pop('secure', False) and 'https' or 'http'
+    
+    relative_url = urlresolvers.reverse(view, *args, **kwargs)
+    
+    return '%s://%s%s' % (protocol, current_site.domain, relative_url)
+
 def pay_ship_info(request):
     return payship.base_pay_ship_info(request,
         config_get_group('PAYMENT_OGONE'), payship.simple_pay_ship_process_form,
@@ -53,73 +63,27 @@ def confirm_info(request):
         return render_to_response('shop/404.html', context_instance=context)
 
     template = lookup_template(payment_module, 'shop/checkout/ogone/confirm.html')
-    if payment_module.LIVE.value:
-        log.debug("live order on %s", payment_module.KEY.value)
-        url = payment_module.POST_URL.value
-        account = payment_module.BUSINESS.value
-    else:
-        url = payment_module.POST_TEST_URL.value
-        account = payment_module.BUSINESS_TEST.value
-
-    try:
-        address = lookup_url(payment_module,
-            payment_module.RETURN_ADDRESS.value, include_server=True)
-    except urlresolvers.NoReverseMatch:
-        address = payment_module.RETURN_ADDRESS.value
 
     processor_module = payment_module.MODULE.load_module('processor')
     processor = processor_module.PaymentProcessor(payment_module)
     processor.create_pending_payment(order=order)
     default_view_tax = config_value('TAX', 'DEFAULT_VIEW_TAX')
 
-    recurring = None
-
-    # Run only if subscription products are installed
-    if 'product.modules.subscription' in settings.INSTALLED_APPS:
-        order_items = order.orderitem_set.all()
-        for item in order_items:
-            if not item.product.is_subscription:
-                continue
-
-            recurring = {'product':item.product, 'price':item.product.price_set.all()[0].price.quantize(Decimal('.01')),}
-            trial0 = recurring['product'].subscriptionproduct.get_trial_terms(0)
-            if len(order_items) > 1 or trial0 is not None or recurring['price'] < order.balance:
-                recurring['trial1'] = {'price': order.balance,}
-                if trial0 is not None:
-                    recurring['trial1']['expire_length'] = trial0.expire_length
-                    recurring['trial1']['expire_unit'] = trial0.subscription.expire_unit[0]
-                # else:
-                #     recurring['trial1']['expire_length'] = recurring['product'].subscriptionproduct.get_trial_terms(0).expire_length
-                trial1 = recurring['product'].subscriptionproduct.get_trial_terms(1)
-                if trial1 is not None:
-                    recurring['trial2']['expire_length'] = trial1.expire_length
-                    recurring['trial2']['expire_unit'] = trial1.subscription.expire_unit[0]
-                    recurring['trial2']['price'] = trial1.price
-
-    order_form_data = get_ogone_request(order, 
-                                        payment_module.CURRENCY_CODE.value,
-                                        accepturl=address, 
-                                        language=getattr(request, 'LANGUAGE_CODE', 'en_US'))
-                                     
-    return render_to_response('ogone/to_ogone_form.html', {
-        'form': order_form_data['form'], 'action': order_form_data['action'], 
-        'header': '', 'title': ''})
-
-confirm_info = never_cache(confirm_info)
+    context = get_ogone_request(order, 
+                                payment_module.CURRENCY_CODE.value,
+                                accepturl=reverse_full_url('satchmo_checkout-success'),
+                                # cancelurl=,
+                                # declineurl=,
+                                # exceptionurl=,
+                                homeurl=reverse_full_url('satchmo_shop_home'),
+                                catalogurl=reverse_full_url('satchmo_category_index'),
+                                language=getattr(request, 'LANGUAGE_CODE', 'en_US'))
     
-#     ctx = RequestContext(request, {'order': order,
-#      'post_url': url,
-#      'default_view_tax': default_view_tax,
-#      'business': account,
-#      'currency_code': payment_module.CURRENCY_CODE.value,
-#      'return_address': address,
-#      'invoice': order.id,
-#      'subscription': recurring,
-#      'PAYMENT_LIVE' : gateway_live(payment_module)
-#     })
-# 
-#     return render_to_response(template, context_instance=ctx)
-#
+    context.update({'order': order})
+    
+    return render_to_response(template, context, RequestContext(request))
+confirm_info = never_cache(confirm_info)
+
 # @csrf_exempt
 # def ipn(request):
 #     """Ogone IPN (Instant Payment Notification)
