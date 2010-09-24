@@ -5,14 +5,16 @@ from django_ogone.ogone import Ogone
 from django_ogone import ogone_settings  
 
 
-def get_ogone_request(order, currency, language,
+def get_ogone_request(payment, currency, language,
                       accepturl='NONE', cancelurl='NONE', homeurl='NONE',
                       catalogurl='NONE', declineurl='NONE', 
                       exceptionurl='NONE'):    
+    
+    order = payment.order
 
     init_data = {
         'PSPID': ogone_settings.PSPID,
-        'orderID': order.id,
+        'orderID': order.pk,
         'amount': u'%d' % (order.balance*100), 
         'language': language,
         'currency': currency,
@@ -22,7 +24,7 @@ def get_ogone_request(order, currency, language,
         'ownerstate': order.bill_street2,
         'ownertown': order.bill_city,
         'ownerzip': order.bill_postal_code,
-        'ownercty': order.bill_country_name,
+        'ownercty': order.bill_country,
         'com': unicode(order),
         # URLs need an appended slash!
         'accepturl': accepturl,

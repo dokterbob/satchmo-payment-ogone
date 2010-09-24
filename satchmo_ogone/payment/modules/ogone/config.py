@@ -37,12 +37,6 @@ StringValue(PAYMENT_GROUP,
     help_text=_('The email address for testing your ogone account'),
     default=""),
 
-StringValue(PAYMENT_GROUP,
-    'RETURN_ADDRESS',
-    description=_('Return URL'),
-    help_text=_('Where Ogone will return the customer after the purchase is complete.  This can be a named url and defaults to the standard checkout success.'),
-    default="satchmo_checkout-success"),
-
 BooleanValue(PAYMENT_GROUP,
     'LIVE',
     description=_("Accept real payments"),

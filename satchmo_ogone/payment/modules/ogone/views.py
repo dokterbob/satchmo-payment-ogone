@@ -11,8 +11,10 @@ from livesettings import config_get_group, config_value
 from payment.config import gateway_live
 from payment.utils import get_processor_by_key
 from payment.views import payship
+from payment.views.checkout import success as success_base, \
+                                              failure as failure_base
 from satchmo_store.shop.models import Cart
-from satchmo_store.shop.models import Order, OrderPayment
+from satchmo_store.shop.models import Order, OrderPayment, OrderAuthorization
 from satchmo_utils.dynamic import lookup_url, lookup_template
 from sys import exc_info
 from traceback import format_exception
@@ -20,7 +22,8 @@ import logging
 import urllib2
 from django.views.decorators.csrf import csrf_exempt
 
-from utils import get_ogone_request
+from satchmo_ogone.payment.modules.ogone.utils import get_ogone_request
+from django_ogone import status_codes
 
 log = logging.getLogger()
 
@@ -34,13 +37,15 @@ def reverse_full_url(view, *args, **kwargs):
     
     return '%s://%s%s' % (protocol, current_site.domain, relative_url)
 
+
+@never_cache
 def pay_ship_info(request):
     return payship.base_pay_ship_info(request,
         config_get_group('PAYMENT_OGONE'), payship.simple_pay_ship_process_form,
         'shop/checkout/ogone/pay_ship.html')
-pay_ship_info = never_cache(pay_ship_info)
 
 
+@never_cache
 def confirm_info(request):
     payment_module = config_get_group('PAYMENT_OGONE')
 
@@ -66,15 +71,19 @@ def confirm_info(request):
 
     processor_module = payment_module.MODULE.load_module('processor')
     processor = processor_module.PaymentProcessor(payment_module)
-    processor.create_pending_payment(order=order)
-    default_view_tax = config_value('TAX', 'DEFAULT_VIEW_TAX')
-
-    context = get_ogone_request(order, 
+    
+    payment = processor.create_pending_payment(order=order)
+    logging.debug('Creating payment %s for order %s', payment, order)
+    
+    success_url = reverse_full_url('OGONE_satchmo_checkout-success')
+    failure_url = reverse_full_url('OGONE_satchmo_checkout-failure')
+    
+    context = get_ogone_request(payment, 
                                 payment_module.CURRENCY_CODE.value,
-                                accepturl=reverse_full_url('satchmo_checkout-success'),
-                                # cancelurl=,
-                                # declineurl=,
-                                # exceptionurl=,
+                                accepturl=success_url,
+                                cancelurl=failure_url,
+                                declineurl=failure_url,
+                                exceptionurl=failure_url,
                                 homeurl=reverse_full_url('satchmo_shop_home'),
                                 catalogurl=reverse_full_url('satchmo_category_index'),
                                 language=getattr(request, 'LANGUAGE_CODE', 'en_US'))
@@ -82,7 +91,120 @@ def confirm_info(request):
     context.update({'order': order})
     
     return render_to_response(template, context, RequestContext(request))
-confirm_info = never_cache(confirm_info)
+
+
+from django_ogone.ogone import Ogone
+
+@csrf_exempt
+def order_status_update(request, order=None):
+    '''
+    Updates the order status with ogone data.
+    There are two ways of reaching this flow
+    
+    - payment redirect (user gets redirected through this flow)
+    - ogone server side call (in case of problems ogone will post to our server
+    with an updated version ofo the payment status)
+    '''
+
+    logging.debug('Attempting to update status information')
+
+    params = request.GET or request.POST
+    if params.get('orderID', False):
+        ogone = Ogone(params)
+    
+        # Make sure we check the data, and raise an exception if its wrong
+        ogone.is_valid()
+        logging.debug('We have found a valid status feedback message')
+
+        # Fetch parsed params
+        parsed_params = ogone.parse_params()   
+    
+        # Get the order 
+        order_id = ogone.get_order_id()
+        ogone_order = Order.objects.get(pk=order_id)
+        
+        assert not order or (ogone_order.pk == order.pk), \
+            'Ogone\'s order and my order are different objects.'
+        
+        # Do order processing and status comparisons here
+        processor = get_processor_by_key('PAYMENT_OGONE')    
+        
+        status_code = parsed_params['STATUS']
+        logging.debug('Recording status: %s (%s)', 
+                      status_codes.STATUS_DESCRIPTIONS[int(status_code)],
+                      status_code)
+        
+        # Prepare parameters for recorder
+        params = {'amount': Decimal(parsed_params['AMOUNT']),
+                  'order': ogone_order,
+                  'transaction_id': parsed_params['PAYID'],
+                  'reason_code': status_code }
+                  
+        first_digit = int(status_code[0])
+        if first_digit == 9:
+            # Payment was captured
+            try:
+                authorization = OrderAuthorization.objects.get(order=ogone_order, transaction_id=parsed_params['PAYID'], complete=False)
+                params.update({'authorization': authorization})
+            except OrderAuthorization.DoesNotExist:
+                pass
+            
+            processor.record_payment(**params)
+            ogone_order.add_status(status='Billed', 
+                notes=_("Payment accepted by Ogone."))
+
+            
+        elif first_digit == 5:
+            # Record authorization
+            processor.record_authorization(**params)
+        
+        elif first_digit == 4:
+            # We're still waiting
+            ogone_order.add_status(status='In Process', 
+                notes=_("Payment is being processed by Ogone."))
+        
+        else:
+            # Record failure
+            processor.record_failure(**params)
+            
+            if first_digit == 1:
+                # Order cancelled
+
+                ogone_order.add_status(status='Cancelled', 
+                    notes=_("Order cancelled through Ogone."))
+
+        #processor.record_payment
+        #processor.record_failure
+
+        # Return an empty HttpResponse
+    return HttpResponse('')
+
+
+@csrf_exempt
+def success(request):
+    """ As we confirm to the user their payment has succeeded, we must make
+        sure that their items are directly removed from the shopping cart
+        as well.
+        
+        Also, we attempt to capture order status parameters here.
+    """
+        
+    order_status_update(request)
+
+    tempCart = Cart.objects.from_request(request)
+    tempCart.empty()
+
+    return success_base(request)
+
+
+@csrf_exempt
+def failure(request):
+    """ Present some kind of specific failure feedback and process status
+        codes. """
+
+    order_status_update(request)
+        
+    return failure_base(request)
 
 # @csrf_exempt
 # def ipn(request):
