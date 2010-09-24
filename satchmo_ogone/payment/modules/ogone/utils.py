@@ -1,11 +1,8 @@
 import logging
 
-from django_ogone import forms as ogone_forms
 from django_ogone.ogone import Ogone
-from django_ogone import ogone_settings  
 
-
-def get_ogone_request(payment, currency, language,
+def get_ogone_request(payment, settings, language,
                       accepturl='NONE', cancelurl='NONE', homeurl='NONE',
                       catalogurl='NONE', declineurl='NONE', 
                       exceptionurl='NONE'):    
@@ -13,11 +10,10 @@ def get_ogone_request(payment, currency, language,
     order = payment.order
 
     init_data = {
-        'PSPID': ogone_settings.PSPID,
+        'PSPID': settings.PSPID,
         'orderID': order.pk,
         'amount': u'%d' % (order.balance*100), 
         'language': language,
-        'currency': currency,
         'cn': order.bill_addressee,
         'email': order.contact.email,
         'owneraddress': order.bill_street1,
@@ -34,11 +30,7 @@ def get_ogone_request(payment, currency, language,
         'homeurl': homeurl,
         'catalogurl': catalogurl,
     }
-    
-    init_data['SHASign'] = Ogone.sign(init_data)
-
-    logging.debug('Sending the following data to Ogone: %s', init_data)
-    form = ogone_forms.OgoneForm(init_data)
-    
-    return {'action': Ogone.get_action(), 'form': form}
+        
+    return {'action': Ogone.get_action(settings=settings), 
+            'form': Ogone.get_form(init_data, settings=settings)}
     
