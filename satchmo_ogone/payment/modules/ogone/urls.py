@@ -8,10 +8,5 @@ urlpatterns = patterns('',
      (r'^confirm/$', 'satchmo_ogone.payment.modules.ogone.views.confirm_info', {'SSL': ssl}, 'OGONE_satchmo_checkout-step3'),
      (r'^success/$', 'satchmo_ogone.payment.modules.ogone.views.success', {'SSL': ssl}, 'OGONE_satchmo_checkout-success'),
      (r'^failure/$', 'satchmo_ogone.payment.modules.ogone.views.failure', {'SSL': ssl}, 'OGONE_satchmo_checkout-failure'),
-     #(r'^declined/$', 'payment.views.checkout.declined', {'SSL': ssl}, 'OGONE_satchmo_checkout-declined'),
-     #(r'^exception/$', 'payment.views.checkout.exception', {'SSL': ssl}, 'OGONE_satchmo_checkout-exception'),
-
-     # (r'^status/$', 'satchmo_ogone.payment.modules.ogone.views.status', {'SSL': ssl}, 'OGONE_satchmo_checkout-status'),
-     #(r'^confirmorder/$', 'payment.views.confirm.confirm_free_order',
-     #    {'SSL' : ssl, 'key' : 'OGONE'}, 'OGONE_satchmo_checkout_free-confirm')
+     (r'^status/$', 'satchmo_ogone.payment.modules.ogone.views.order_status_update', {'SSL': ssl}, 'OGONE_satchmo_checkout-status'),
 )
