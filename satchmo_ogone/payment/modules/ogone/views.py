@@ -130,8 +130,9 @@ def order_status_update(request, order=None):
         processor = get_processor_by_key('PAYMENT_OGONE')    
         
         status_code = parsed_params['STATUS']
+        status_num = int(status_code)
         logging.debug('Recording status: %s (%s)', 
-                      status_codes.STATUS_DESCRIPTIONS[int(status_code)],
+                      status_codes.STATUS_DESCRIPTIONS[status_num],
                       status_code)
         
         # Prepare parameters for recorder
@@ -139,9 +140,8 @@ def order_status_update(request, order=None):
                   'order': ogone_order,
                   'transaction_id': parsed_params['PAYID'],
                   'reason_code': status_code }
-                  
-        first_digit = int(status_code[0])
-        if first_digit == 9:
+        
+        if status_num in (9, 91):
             # Payment was captured
             try:
                 authorization = OrderAuthorization.objects.get(order=ogone_order, transaction_id=parsed_params['PAYID'], complete=False)
@@ -154,11 +154,11 @@ def order_status_update(request, order=None):
                 notes=_("Payment accepted by Ogone."))
 
             
-        elif first_digit == 5:
+        elif status_num in (5, 51):
             # Record authorization
             processor.record_authorization(**params)
         
-        elif first_digit == 4:
+        elif status_num in (4, 41):
             # We're still waiting
             ogone_order.add_status(status='In Process', 
                 notes=_("Payment is being processed by Ogone."))
@@ -167,16 +167,29 @@ def order_status_update(request, order=None):
             # Record failure
             processor.record_failure(**params)
             
-            if first_digit == 1:
+            if status_num in (1,):
                 # Order cancelled
 
                 ogone_order.add_status(status='Cancelled', 
                     notes=_("Order cancelled through Ogone."))
 
-        #processor.record_payment
-        #processor.record_failure
+            elif status_num in (2, 93):
+                # Payment declined
 
-        # Return an empty HttpResponse
+                ogone_order.add_status(status='Blocked', 
+                    notes=_("Payment declined by Ogone."))
+            
+            elif status_num in (52, 92):
+                logging.warning('Payment of order %s (ID: %d) uncertain. Status: %s (%d)',
+                    ogone_order, ogone_order.pk, 
+                    status_codes.STATUS_DESCRIPTIONS[status_num], status_num)
+            
+            else:
+                logging.error('Unknown payment status returned for order %s (ID: %d). Status: %s (%d)',
+                    ogone_order, ogone_order.pk, 
+                    status_codes.STATUS_DESCRIPTIONS[status_num], status_num)
+
+    # Return an empty HttpResponse
     return HttpResponse('')
 
 
