@@ -169,7 +169,7 @@ def order_status_update(request, order=None):
                 pass
             
             processor.record_payment(**params)
-            ogone_order.add_status(status='Billed', 
+            ogone_order.add_status(status='New', 
                 notes=_("Payment accepted by Ogone."))
 
             
@@ -179,7 +179,7 @@ def order_status_update(request, order=None):
         
         elif status_num in (4, 41):
             # We're still waiting
-            ogone_order.add_status(status='In Process', 
+            ogone_order.add_status(status='New', 
                 notes=_("Payment is being processed by Ogone."))
         
         else:
