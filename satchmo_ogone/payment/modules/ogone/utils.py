@@ -1,4 +1,4 @@
-import logging
+cd import logging
 
 from django_ogone.ogone import Ogone
 
@@ -11,7 +11,7 @@ def get_ogone_request(payment, settings, language,
 
     init_data = {
         'PSPID': settings.PSPID,
-        'orderID': order.pk,
+        'orderID': payment.pk,
         'amount': u'%d' % (order.balance*100), 
         'language': language,
         'cn': order.bill_addressee,
