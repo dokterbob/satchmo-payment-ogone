@@ -1,4 +1,4 @@
-cd import logging
+import logging
 
 from django_ogone.ogone import Ogone
 
