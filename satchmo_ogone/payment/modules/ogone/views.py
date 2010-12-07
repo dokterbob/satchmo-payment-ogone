@@ -214,7 +214,8 @@ def order_status_update(request, order=None):
                     ogone_order, ogone_order.pk, 
                     status_codes.STATUS_DESCRIPTIONS[status_num], status_num)
     else:
-        log.debug('We have gotten an unknown order status update.')
+        log.debug('Uknown status code %d found for order %s.' \
+                    % (status_num, ogone_order))
     
     # Return an empty HttpResponse
     return HttpResponse('')
