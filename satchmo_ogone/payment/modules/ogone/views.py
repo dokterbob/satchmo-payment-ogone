@@ -95,6 +95,8 @@ def confirm_info(request):
     
     success_url = reverse_full_url('OGONE_satchmo_checkout-success')
     failure_url = reverse_full_url('OGONE_satchmo_checkout-failure')
+    homeurl = reverse_full_url('satchmo_shop_home')
+    catalogurl = reverse_full_url('satchmo_category_index')
     
     # Get Ogone settings from Satchmo
     settings = get_ogone_settings()
@@ -105,8 +107,8 @@ def confirm_info(request):
                                 cancelurl=failure_url,
                                 declineurl=failure_url,
                                 exceptionurl=failure_url,
-                                homeurl=reverse_full_url('satchmo_shop_home'),
-                                catalogurl=reverse_full_url('satchmo_category_index'),
+                                homeurl=homeurl,
+                                catalogurl=catalogurl,
                                 language=getattr(request, 'LANGUAGE_CODE', 'en_US'))
     
     context.update({'order': order})
