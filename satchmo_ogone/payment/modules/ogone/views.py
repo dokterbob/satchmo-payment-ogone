@@ -130,7 +130,8 @@ def order_status_update(request, order=None):
     with an updated version ofo the payment status)
     '''
 
-    log.debug('Attempting to update status information')
+    log.debug('Attempting to update status information'
+              extra={'request': request})
 
     params = request.GET or request.POST
     if params.get('orderID', False):
@@ -232,7 +233,8 @@ def order_status_update(request, order=None):
                             exc_info=sys.exc_info()
                            )
     else:
-        log.warning('This response does not look valid, orderID not found.')
+        log.warning('This response does not look valid, orderID not found.',
+                    extra={'request': request})
     
     # Return an empty HttpResponse
     return HttpResponse('')
