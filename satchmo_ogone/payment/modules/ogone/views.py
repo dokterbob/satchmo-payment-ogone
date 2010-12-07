@@ -224,11 +224,11 @@ def order_status_update(request, order=None):
                     ogone_order, ogone_order.pk, 
                     status_codes.STATUS_DESCRIPTIONS[status_num], status_num)
     else:
-        log.debug('Uknown status code %d found for order %s.',
-                  status_num, 
-                  ogone_order,
-                  exc_info=sys.exc_info()
-                  )
+        log.warning('Uknown status code %d found for order %s.',
+                    status_num, 
+                    ogone_order,
+                    exc_info=sys.exc_info()
+                   )
     
     # Return an empty HttpResponse
     return HttpResponse('')
@@ -246,7 +246,10 @@ def success(request):
     order_status_update(request)
 
     tempCart = Cart.objects.from_request(request)
-    tempCart.empty()
+    log.debug('Payment succesful, cleaning out shopping cart.',
+              extra={'data': {'cart': tempCart}})
+
+    tempCart.empty()    
 
     return success_base(request)
 
