@@ -133,10 +133,12 @@ def order_status_update(request, order=None):
     
         # Make sure we check the data, and raise an exception if its wrong
         ogone.is_valid()
-        log.debug('We have found a valid status feedback message')
 
         # Fetch parsed params
         parsed_params = ogone.parse_params()   
+
+        log.debug('We have found a valid status feedback message: %s' \
+                    % parsed_params)
     
         # Get the order 
         payment_id = ogone.get_order_id()
@@ -146,16 +148,17 @@ def order_status_update(request, order=None):
         assert not order or (ogone_order.pk == order.pk), \
             'Ogone\'s order and my order are different objects.'
         
+        log.debug('Found order %s for payment %s in processing feedback.' \
+                    % (ogone_order, ogone_payment))
+        
         # Do order processing and status comparisons here
         processor = get_processor_by_key('PAYMENT_OGONE')    
         
         status_code = parsed_params['STATUS']
         status_num = int(status_code)
-        log.debug('This should output some data. (1)')
         log.debug('Recording status: %s (%s)' % 
                     (status_codes.STATUS_DESCRIPTIONS[status_num],
                      status_code))
-        log.debug('This should output some data. (2)')
         
         # Prepare parameters for recorder
         params = {'amount': Decimal(parsed_params['AMOUNT']),
