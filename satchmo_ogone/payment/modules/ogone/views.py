@@ -130,7 +130,7 @@ def order_status_update(request, order=None):
     with an updated version ofo the payment status)
     '''
 
-    log.debug('Attempting to update status information'
+    log.debug('Attempting to update status information',
               extra={'request': request})
 
     params = request.GET or request.POST
