@@ -151,9 +151,11 @@ def order_status_update(request, order=None):
         
         status_code = parsed_params['STATUS']
         status_num = int(status_code)
-        log.debug('Recording status: %s (%s)', 
-                      status_codes.STATUS_DESCRIPTIONS[status_num],
-                      status_code)
+        log.debug('This should output some data. (1)')
+        log.debug('Recording status: %s (%s)' % 
+                    (status_codes.STATUS_DESCRIPTIONS[status_num],
+                     status_code))
+        log.debug('This should output some data. (2)')
         
         # Prepare parameters for recorder
         params = {'amount': Decimal(parsed_params['AMOUNT']),
@@ -209,7 +211,7 @@ def order_status_update(request, order=None):
                     ogone_order, ogone_order.pk, 
                     status_codes.STATUS_DESCRIPTIONS[status_num], status_num)
     else:
-        log.debug('We have gotten an invalid order status update.')
+        log.debug('We have gotten an unknown order status update.')
     
     # Return an empty HttpResponse
     return HttpResponse('')
