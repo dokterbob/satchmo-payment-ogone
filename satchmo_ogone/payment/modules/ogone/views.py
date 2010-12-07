@@ -225,14 +225,14 @@ def order_status_update(request, order=None):
                     ogone_order, ogone_order.pk, 
                     status_codes.STATUS_DESCRIPTIONS[status_num], status_num)
             
-        else:
-            log.warning('Uknown status code %d found for order %s.',
-                        status_num, 
-                        ogone_order,
-                        exc_info=sys.exc_info()
-                       )
+            else:
+                log.warning('Uknown status code %d found for order %s.',
+                            status_num, 
+                            ogone_order,
+                            exc_info=sys.exc_info()
+                           )
     else:
-        logging.warning('This response does not look valid, orderID not found.')
+        log.warning('This response does not look valid, orderID not found.')
     
     # Return an empty HttpResponse
     return HttpResponse('')
