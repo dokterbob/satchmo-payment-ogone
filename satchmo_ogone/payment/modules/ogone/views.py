@@ -90,7 +90,9 @@ def confirm_info(request):
     processor_module = payment_module.MODULE.load_module('processor')
     processor = processor_module.PaymentProcessor(payment_module)
     
-    payment = processor.create_pending_payment(order=order)
+    pending_payment = processor.create_pending_payment(order=order)
+    payment = pending_payment.capture
+    
     log.debug('Creating payment %s for order %s', payment, order)
     
     success_url = reverse_full_url('OGONE_satchmo_checkout-success')
