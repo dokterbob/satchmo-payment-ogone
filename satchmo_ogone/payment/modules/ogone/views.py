@@ -149,6 +149,8 @@ def order_status_update(request, order=None):
             ogone_payment = OrderPayment.objects.get(pk=payment_id)
         except OrderPayment.DoesNotExist:
             log.warning('Payment with payment_id=%d not found.', payment_id)
+            
+            return HttpResponse('')
         
         ogone_order = ogone_payment.order
         
