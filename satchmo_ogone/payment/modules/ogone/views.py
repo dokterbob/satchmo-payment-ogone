@@ -1,3 +1,5 @@
+import sys
+
 from decimal import Decimal
 from django.conf import settings
 from django.core import urlresolvers
@@ -137,8 +139,8 @@ def order_status_update(request, order=None):
         # Fetch parsed params
         parsed_params = ogone.parse_params()   
 
-        log.debug('We have found a valid status feedback message: %s' \
-                    % parsed_params)
+        log.debug('We have found a valid status feedback message.',
+                  extra={'data':{'parsed_params': parsed_params}})
     
         # Get the order 
         payment_id = ogone.get_order_id()
@@ -148,17 +150,17 @@ def order_status_update(request, order=None):
         assert not order or (ogone_order.pk == order.pk), \
             'Ogone\'s order and my order are different objects.'
         
-        log.debug('Found order %s for payment %s in processing feedback.' \
-                    % (ogone_order, ogone_payment))
+        log.debug('Found order %s for payment %s in processing feedback.',
+                  ogone_order, ogone_payment)
         
         # Do order processing and status comparisons here
         processor = get_processor_by_key('PAYMENT_OGONE')    
         
         status_code = parsed_params['STATUS']
         status_num = int(status_code)
-        log.debug('Recording status: %s (%s)' % 
-                    (status_codes.STATUS_DESCRIPTIONS[status_num],
-                     status_code))
+        log.debug('Recording status: %s (%s)',
+                  status_codes.STATUS_DESCRIPTIONS[status_num],
+                  status_code)
         
         # Prepare parameters for recorder
         params = {'amount': Decimal(parsed_params['AMOUNT']),
@@ -214,8 +216,11 @@ def order_status_update(request, order=None):
                     ogone_order, ogone_order.pk, 
                     status_codes.STATUS_DESCRIPTIONS[status_num], status_num)
     else:
-        log.debug('Uknown status code %d found for order %s.' \
-                    % (status_num, ogone_order))
+        log.debug('Uknown status code %d found for order %s.',
+                  status_num, 
+                  ogone_order,
+                  exc_info=sys.exc_info()
+                  )
     
     # Return an empty HttpResponse
     return HttpResponse('')
