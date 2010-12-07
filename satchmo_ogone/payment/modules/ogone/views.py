@@ -139,8 +139,9 @@ def order_status_update(request, order=None):
         parsed_params = ogone.parse_params()   
     
         # Get the order 
-        order_id = ogone.get_order_id()
-        ogone_order = Order.objects.get(pk=order_id)
+        payment_id = ogone.get_order_id()
+        ogone_payment = OrderPayment.objects.all.objects.get(pk=payment_id)
+        ogone_order = ogone_payment.order
         
         assert not order or (ogone_order.pk == order.pk), \
             'Ogone\'s order and my order are different objects.'
