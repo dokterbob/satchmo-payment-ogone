@@ -144,7 +144,12 @@ def order_status_update(request, order=None):
     
         # Get the order 
         payment_id = ogone.get_order_id()
-        ogone_payment = OrderPayment.objects.get(pk=payment_id)
+        
+        try:
+            ogone_payment = OrderPayment.objects.get(pk=payment_id)
+        except OrderPayment.DoesNotExist:
+            log.warning('Payment with payment_id=%d not found.', payment_id)
+        
         ogone_order = ogone_payment.order
         
         assert not order or (ogone_order.pk == order.pk), \
@@ -158,6 +163,9 @@ def order_status_update(request, order=None):
         
         status_code = parsed_params['STATUS']
         status_num = int(status_code)
+        
+        assert status_num, 'No status number.'
+        
         log.debug('Recording status: %s (%s)',
                   status_codes.STATUS_DESCRIPTIONS[status_num],
                   status_code)
