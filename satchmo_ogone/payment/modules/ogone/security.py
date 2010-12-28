@@ -37,7 +37,7 @@ def create_hash(params, secret, hashfunc=sha512):
     signstring = ''.join(signstring)
     
     # Hash the string
-    signhash = hashfunc(signstring).hexdigest()
+    signhash = hashfunc(signstring.encode('utf-8')).hexdigest()
     
     # Uppercase the hash
     signhashupper = signhash.upper()
