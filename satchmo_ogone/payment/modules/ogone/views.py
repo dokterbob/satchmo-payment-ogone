@@ -186,14 +186,26 @@ def order_status_update(request, order=None):
         if status_num in (9, 91):
             # Payment was captured
             try:
-                authorization = OrderAuthorization.objects.get(order=ogone_order, transaction_id=parsed_params['PAYID'], complete=False)
+                authorization = OrderAuthorization.objects.get(order=ogone_order, \
+                                                               transaction_id=parsed_params['PAYID'], \
+                                                               complete=False)
                 params.update({'authorization': authorization})
             except OrderAuthorization.DoesNotExist:
                 pass
             
             processor.record_payment(**params)
-            ogone_order.add_status(status='New', 
-                notes=_("Payment accepted by Ogone."))
+
+            # Only change the status when it was empty or 'New' before.
+            def _latest_status(order):
+                    try:
+                        curr_status = order.orderstatus_set.latest()
+                        return curr_status.status
+                    except OrderStatus.DoesNotExist:
+                        return ''
+
+            if _latest_status(order) in ('', 'New'):
+                ogone_order.add_status(status='Billed', 
+                    notes=_("Payment accepted by Ogone."))
 
             
         elif status_num in (5, 51):
