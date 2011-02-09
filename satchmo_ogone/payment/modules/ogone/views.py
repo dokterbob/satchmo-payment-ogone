@@ -16,7 +16,8 @@ from payment.views import payship
 from payment.views.checkout import success as success_base, \
                                               failure as failure_base
 from satchmo_store.shop.models import Cart
-from satchmo_store.shop.models import Order, OrderPayment, OrderAuthorization
+from satchmo_store.shop.models import Order, OrderPayment, \
+                                      OrderAuthorization, OrderStatus
 from satchmo_utils.dynamic import lookup_url, lookup_template
 from sys import exc_info
 from traceback import format_exception
