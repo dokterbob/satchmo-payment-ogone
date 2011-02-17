@@ -204,7 +204,7 @@ def order_status_update(request, order=None):
                     except OrderStatus.DoesNotExist:
                         return ''
 
-            if _latest_status(order) in ('', 'New'):
+            if _latest_status(ogone_order) in ('', 'New'):
                 ogone_order.add_status(status='Billed', 
                     notes=_("Payment accepted by Ogone."))
 
